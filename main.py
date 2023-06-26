@@ -243,9 +243,3 @@ t.start()
 
      
 bot.infinity_polling(timeout=10, long_polling_timeout = 5)
-
-    
-
-#TODO IMPLEMENTAR Apos primeira mensagem, buscar user no banco de dados. Se tiver, vai pra outro fluxo.
-#TODO IMPLEMENTAR funcoes do help
-#TODO IMPLEMENTAR envio de mensagens nos momentos de rendicao, com paramentro variavel de tempo antes.
