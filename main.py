@@ -7,7 +7,7 @@ from user import User
 from sheet_access import search_lpna, sync_schedule
 
 #configs
-logging.basicConfig(filename='main.log', encoding='utf-8', level=logging.DEBUG)
+logging.basicConfig(filename='main.log', encoding='utf-8', level=logging.INFO)
 API_TELEGRAM_TOKEN = os.environ['API_TELEGRAM_TOKEN']
 URL_ESCALA = os.environ['URL_ESCALA']
 bot = telebot.TeleBot(API_TELEGRAM_TOKEN)
