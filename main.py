@@ -5,8 +5,10 @@ import logging
 from db_access import db_search_by_chat_id, db_create_user, db_delete_user, db_upd_time
 from user import User
 from sheet_access import search_lpna, sync_schedule
+from dotenv import load_dotenv
 
 #configs
+load_dotenv()
 logging.basicConfig(filename='main.log', encoding='utf-8', level=logging.INFO)
 API_TELEGRAM_TOKEN = os.environ['API_TELEGRAM_TOKEN']
 URL_ESCALA = os.environ['URL_ESCALA']

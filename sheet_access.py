@@ -147,6 +147,8 @@ def call_opr(upcoming_list, console, pos):
     return False
 
 def send_call_message(op_name, console, shift_time, pos):
+    shift_time = shift_time - timedelta(hours=3)
+    shift_time = shift_time.strftime("%H:%M")
     chat_id = db_chat_id_search(op_name)
     bot.send_message(chat_id,
             f'''
