@@ -70,12 +70,18 @@ def sync_schedule():
     creds = connect_to_spreadsheet()
 
     while True:
-        night_shift_routine()
         try:
             service = build('sheets', 'v4', credentials=creds)
         # Call the Sheets API
             sheet = service.spreadsheets()
             schedule = sync_time(sheet)
+            if is_updated(sheet, "P6", "x"):
+                pass
+            else:
+                detach_op = sync_op(sheet, 'BOT!B1')
+                send_detach_msg(detach_op)
+
+            night_shift_routine()
             if is_updated(sheet, "J6", "x") and is_updated(sheet, "K6", "x"):
                 pass
             else:
@@ -109,6 +115,15 @@ def sync_schedule():
             print(err)
         sleep(15)
 
+def send_detach_msg(upcoming_list){
+    op_name = ''.join(upcoming_list[0][0])
+    chat_id = db_chat_id_search(op_name)
+    bot.send_message(chat_id,
+            f'''
+            {op_name} tão te chamando lá dentro. Acho que querem te dar um bolete. 
+            '''
+            )
+}
 
 def night_shift_routine():
  now =  datetime.now(timezone.utc)
@@ -159,6 +174,7 @@ def send_call_message(op_name, console, shift_time, pos):
             '''
             )
     print(f'{op_name} dá tempo de fazer um bolinho antes de render {pos} na {console} às {shift_time}')
+
 def is_updated(sheet, position, console):
     range_name = 'BOT!'+ position
     result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
