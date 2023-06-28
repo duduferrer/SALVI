@@ -21,7 +21,7 @@ last_update = {
     "x" : datetime.strptime('01/01/2000 00:00:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc),
     "y" : datetime.strptime('01/01/2000 00:00:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc),
     "z" : datetime.strptime('01/01/2000 00:00:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc),
-    "detach" : datetime.strptime('01/01/2000 00:00:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc)
+    "detach" : datetime.now(timezone.utc)
 
 }
 next_op = {}
