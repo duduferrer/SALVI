@@ -115,15 +115,16 @@ def sync_schedule():
             print(err)
         sleep(15)
 
-def send_detach_msg(upcoming_list){
+
+def send_detach_msg(upcoming_list):
     op_name = ''.join(upcoming_list[0][0])
     chat_id = db_chat_id_search(op_name)
     bot.send_message(chat_id,
             f'''
-            {op_name} tão te chamando lá dentro. Acho que querem te dar um bolete. 
+            {op_name} tão te chamando lá dentro. Acho que querem te dar um bolete.
             '''
             )
-}
+    return True
 
 def night_shift_routine():
  now =  datetime.now(timezone.utc)
