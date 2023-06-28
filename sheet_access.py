@@ -166,12 +166,11 @@ def night_shift_routine(sheet):
  night_start = time(23,30)
  night_end = time(9,30)
  print(now)
- if now > night_start:
-    while now < night_end:
-        print(now + "night loop")
-        detach_sector(sheet)
-        now =  datetime.now(timezone.utc).time()
-        sleep(20)
+ while now > night_start or now < night_end:
+    print(now, "night loop")
+    detach_sector(sheet)
+    now =  datetime.now(timezone.utc).time()
+    sleep(20)
  return True
 
 
