@@ -146,6 +146,7 @@ def send_detach_msg(upcoming_list, sheet):
                 {op_name} tão te chamando lá dentro. Acho que querem te dar um bolete.
                 '''
                 )
+        print(f"{op_name} tão te chamando lá dentro. Acho que querem te dar um bolete.")
         sheet.values().update(spreadsheetId=SPREADSHEET_ID, range='BOT!C1', valueInputOption=value_input_option, body=OK_body_text).execute()
     else:
         sheet.values().update(spreadsheetId=SPREADSHEET_ID, range='BOT!C1', valueInputOption=value_input_option, body=FAIL_body_text).execute()
@@ -163,13 +164,13 @@ def detach_sector(sheet):
 def night_shift_routine(sheet):
  now =  datetime.now(timezone.utc).time()
  night_start = time(23,30)
- print(night_start)
  night_end = time(9,30)
+ print(now)
  if now > night_start:
     while now < night_end:
+        print(now + "night loop")
         detach_sector(sheet)
         now =  datetime.now(timezone.utc).time()
-        print(now)
         sleep(20)
  return True
 
