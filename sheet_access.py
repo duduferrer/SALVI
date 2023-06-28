@@ -1,7 +1,7 @@
 import os
 import logging
 from time import sleep
-from datetime import datetime, timezone, date, timedelta
+from datetime import datetime, timezone, time, timedelta
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -161,16 +161,16 @@ def detach_sector(sheet):
 
 
 def night_shift_routine(sheet):
- now =  datetime.now(timezone.utc)
- today = date.today()
- night_start = datetime.strptime(f'{today.day}/{today.month}/{today.year} 23:30:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc)
- night_end = datetime.strptime(f'{today.day}/{today.month}/2100 00:00:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc)#only a place holder
+ now =  datetime.now(timezone.utc).time()
+ night_start = time(23,30)
+ print(night_start)
+ night_end = time(9,30)
  if now > night_start:
     while now < night_end:
         detach_sector(sheet)
-        now =  datetime.now(timezone.utc)
-        today = date.today()
-        night_end = datetime.strptime(f'{today.day}/{today.month}/{today.year} 09:30:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc)
+        now =  datetime.now(timezone.utc).time()
+        print(now)
+        sleep(20)
  return True
 
 
