@@ -20,13 +20,15 @@ SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
 last_update = {
     "x" : datetime.strptime('01/01/2000 00:00:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc),
     "y" : datetime.strptime('01/01/2000 00:00:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc),
-    "z" : datetime.strptime('01/01/2000 00:00:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc)
+    "z" : datetime.strptime('01/01/2000 00:00:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc),
+    "detach" : datetime.strptime('01/01/2000 00:00:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc)
+
 }
 next_op = {}
 
 
 def connect_to_spreadsheet():
-    scopes = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+    scopes = ['https://www.googleapis.com/auth/spreadsheets']
     creds = None
     if os.path.exists('token.json'):
         creds = Credentials.from_authorized_user_file('token.json', scopes)
@@ -75,13 +77,8 @@ def sync_schedule():
         # Call the Sheets API
             sheet = service.spreadsheets()
             schedule = sync_time(sheet)
-            if is_updated(sheet, "P6", "x"):
-                pass
-            else:
-                detach_op = sync_op(sheet, 'BOT!B1')
-                send_detach_msg(detach_op)
-
-            night_shift_routine()
+            detach_sector(sheet)
+            night_shift_routine(sheet)
             if is_updated(sheet, "J6", "x") and is_updated(sheet, "K6", "x"):
                 pass
             else:
@@ -116,23 +113,42 @@ def sync_schedule():
         sleep(15)
 
 
-def send_detach_msg(upcoming_list):
+def send_detach_msg(upcoming_list, sheet):
     op_name = ''.join(upcoming_list[0][0])
-    chat_id = db_chat_id_search(op_name)
-    bot.send_message(chat_id,
-            f'''
-            {op_name} tão te chamando lá dentro. Acho que querem te dar um bolete.
-            '''
-            )
-    return True
+    value_input_option = "USER_ENTERED"
+    body_text = {
+            'values': [[f'Mensagem enviada para {op_name}']]
+        }
+    if db_time_search(op_name):
+        chat_id = db_chat_id_search(op_name)
+    if chat_id:
+        bot.send_message(chat_id,
+                f'''
+                {op_name} tão te chamando lá dentro. Acho que querem te dar um bolete.
+                '''
+                )
+        sheet.values().update(spreadsheetId=SPREADSHEET_ID, range='BOT!C1', valueInputOption=value_input_option, body=body_text).execute()
+        global last_update
+        last_update.update({'detach' : datetime.now(timezone.utc)})
+        return True
+    return False
 
-def night_shift_routine():
+def detach_sector(sheet):
+    if is_updated(sheet, "P6", "detach"):
+        pass
+    else:
+        detach_op = sync_op(sheet, 'BOT!B1')
+        send_detach_msg(detach_op, sheet)
+
+
+def night_shift_routine(sheet):
  now =  datetime.now(timezone.utc)
  today = date.today()
  night_start = datetime.strptime(f'{today.day}/{today.month}/{today.year} 23:30:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc)
  night_end = datetime.strptime(f'{today.day}/{today.month}/2100 00:00:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc)#only a place holder
  if now > night_start:
     while now < night_end:
+        detach_sector(sheet)
         now =  datetime.now(timezone.utc)
         today = date.today()
         night_end = datetime.strptime(f'{today.day}/{today.month}/{today.year} 09:30:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc)
