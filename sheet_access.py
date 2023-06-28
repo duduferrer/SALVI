@@ -10,10 +10,13 @@ from googleapiclient.errors import HttpError
 from db_access import db_time_search
 import telebot
 from db_access import db_chat_id_search
+from dotenv import load_dotenv
 
-API_TELEGRAM_TOKEN = os.environ['API_TELEGRAM_TOKEN']
+load_dotenv()
+
+API_TELEGRAM_TOKEN = os.getenv('API_TELEGRAM_TOKEN')
 bot = telebot.TeleBot(API_TELEGRAM_TOKEN)
-SPREADSHEET_ID = os.environ['SPREADSHEET_ID']
+SPREADSHEET_ID = os.getenv('SPREADSHEET_ID')
 last_update = {
     "x" : datetime.strptime('01/01/2000 00:00:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc),
     "y" : datetime.strptime('01/01/2000 00:00:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc),
@@ -58,14 +61,14 @@ def search_lpna(lpna):
             return (None)
         for element in values:
             if lpna in element:
-                return(element[0]) 
+                return(element[0])
     except HttpError as err:
         print(err)
 
 
 def sync_schedule():
     creds = connect_to_spreadsheet()
-    
+
     while True:
         night_shift_routine()
         try:
@@ -75,19 +78,19 @@ def sync_schedule():
             schedule = sync_time(sheet)
             if is_updated(sheet, "J6", "x") and is_updated(sheet, "K6", "x"):
                 pass
-            else:    
+            else:
                 console_x, upcoming_ctr_x, upcoming_ass_x = update_console_x(sheet, schedule)
-            
+
             if is_updated(sheet, "L6", "y") and is_updated(sheet, "M6", "y"):
                 pass
             else:
                 console_y, upcoming_ctr_y, upcoming_ass_y = update_console_y(sheet, schedule)
-            
+
             if is_updated(sheet, "N6", "z") and is_updated(sheet, "O6", "z"):
                 pass
             else:
                 console_z, upcoming_ctr_z, upcoming_ass_z = update_console_z(sheet, schedule)
-            
+
             if call_opr(upcoming_ctr_x, console_x, "controle"):
                 upcoming_ctr_x.pop(0)
             if call_opr(upcoming_ass_x, console_x, "assistente"):
@@ -99,12 +102,12 @@ def sync_schedule():
             if call_opr(upcoming_ctr_z, console_z, "controle"):
                 upcoming_ctr_z.pop(0)
             if call_opr(upcoming_ass_z, console_z, "assistente"):
-                upcoming_ass_z.pop(0)       
-                
+                upcoming_ass_z.pop(0)
+
         except HttpError as err:
             logging.error("Can't connect to sheets")
             print(err)
-        sleep(5)
+        sleep(15)
 
 
 def night_shift_routine():
@@ -115,10 +118,10 @@ def night_shift_routine():
  if now > night_start:
     while now < night_end:
         now =  datetime.now(timezone.utc)
-        today = date.today() 
+        today = date.today()
         night_end = datetime.strptime(f'{today.day}/{today.month}/{today.year} 09:30:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc)
  return True
-         
+
 
 def call_opr(upcoming_list, console, pos):
     global next_op
@@ -147,13 +150,15 @@ def call_opr(upcoming_list, console, pos):
     return False
 
 def send_call_message(op_name, console, shift_time, pos):
+    shift_time = shift_time - timedelta(hours=3)
+    shift_time = shift_time.strftime("%H:%M")
     chat_id = db_chat_id_search(op_name)
     bot.send_message(chat_id,
             f'''
             {op_name} dá tempo de fazer um bolinho antes de render {pos} na {console} às {shift_time}
             '''
-            )        
-        
+            )
+    print(f'{op_name} dá tempo de fazer um bolinho antes de render {pos} na {console} às {shift_time}')
 def is_updated(sheet, position, console):
     range_name = 'BOT!'+ position
     result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
@@ -165,7 +170,7 @@ def is_updated(sheet, position, console):
     if not update:
         logging.error(f"Can t find last update on {range_name}")
         return (True)
-    global last_update 
+    global last_update
     if update > last_update.get(console):
         return False
     return True
@@ -177,10 +182,10 @@ def sync_time(sheet):
     time = result.get('values', [])
     if not time:
         logging.error(f"No data found on {range_name}")
-        return (None) 
-    return time 
-    
-    
+        return (None)
+    return time
+
+
 def sync_op(sheet, range):
     range_name = range
     result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
@@ -188,10 +193,10 @@ def sync_op(sheet, range):
     operators = result.get('values', [])
     if not operators:
         logging.error(f"No data found on {range_name}")
-        return (None) 
+        return (None)
     return(operators)
-    
-    
+
+
 def sync_console(sheet, range):
     range_name = range
     result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
@@ -199,7 +204,7 @@ def sync_console(sheet, range):
     console = result.get('values', [])
     if not console:
         logging.error(f"No data found on {range_name}")
-        return (None) 
+        return (None)
     return(''.join(console[0]))
 
 def generate_op_schedule_list(schedule, operator_list):
@@ -230,9 +235,9 @@ def verify_hour(opr_hour_list):
     upcoming_call = []
     for opr_hour in opr_hour_list:
         if opr_hour[0] > now and opr_hour[1]!='':
-            upcoming_call.append(opr_hour)     
+            upcoming_call.append(opr_hour)
     return upcoming_call
-        
+
 def update_console_x(sheet, schedule):
     console_x = sync_console(sheet, 'Horário!E6')
     ctr_x = sync_op(sheet, 'Horário!E9:E22')
@@ -244,7 +249,7 @@ def update_console_x(sheet, schedule):
     global last_update
     last_update.update({'x' : datetime.now(timezone.utc)})
     return(console_x, upcoming_call_ctr_x, upcoming_call_ass_x)
-            
+
 def update_console_y(sheet, schedule):
     console_y = sync_console(sheet, 'Horário!I6')
     ctr_y = sync_op(sheet, 'Horário!I9:I22')
@@ -252,7 +257,7 @@ def update_console_y(sheet, schedule):
     ctr_y_sch_list= generate_op_schedule_list(schedule, ctr_y)
     ass_y_sch_list= generate_op_schedule_list(schedule, ass_y)
     upcoming_call_ctr_y = verify_hour(ctr_y_sch_list)
-    upcoming_call_ass_y = verify_hour(ass_y_sch_list)    
+    upcoming_call_ass_y = verify_hour(ass_y_sch_list)
     global last_update
     last_update.update({'y' : datetime.now(timezone.utc)})
     return(console_y, upcoming_call_ctr_y, upcoming_call_ass_y)
@@ -264,8 +269,7 @@ def update_console_z(sheet, schedule):
     ctr_z_sch_list= generate_op_schedule_list(schedule, ctr_z)
     ass_z_sch_list= generate_op_schedule_list(schedule, ass_z)
     upcoming_call_ctr_z = verify_hour(ctr_z_sch_list)
-    upcoming_call_ass_z = verify_hour(ass_z_sch_list)        
+    upcoming_call_ass_z = verify_hour(ass_z_sch_list)
     global last_update
     last_update.update({'z' : datetime.now(timezone.utc)})
-    return(console_z, upcoming_call_ctr_z, upcoming_call_ass_z)  
-        
+    return(console_z, upcoming_call_ctr_z, upcoming_call_ass_z)
