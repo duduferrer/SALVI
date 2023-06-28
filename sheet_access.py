@@ -11,6 +11,7 @@ from db_access import db_time_search
 import telebot
 from db_access import db_chat_id_search
 from dotenv import load_dotenv
+from message import Message
 
 load_dotenv()
 
@@ -23,6 +24,20 @@ last_update = {
     "z" : datetime.strptime('01/01/2000 00:00:00 UTC', '%d/%m/%Y %H:%M:%S %Z').replace(tzinfo=timezone.utc),
     "detach" : datetime.now(timezone.utc)
 
+}
+last_message = {
+    "CONSOLE 1": {
+                    "controle":None, 
+                    "assistente":None
+                 },
+    "CONSOLE 2": {
+                    "controle":None, 
+                    "assistente":None
+                 },
+    "CONSOLE 3": {
+                    "controle":None, 
+                    "assistente":None
+                 }
 }
 next_op = {}
 
@@ -189,13 +204,20 @@ def send_call_message(op_name, console, shift_time, pos):
     shift_time = shift_time - timedelta(hours=3)
     shift_time = shift_time.strftime("%H:%M")
     chat_id = db_chat_id_search(op_name)
-    bot.send_message(chat_id,
-            f'''
-            {op_name} dá tempo de fazer um bolinho antes de render {pos} na {console} às {shift_time}
-            '''
-            )
-    print(f'{op_name} dá tempo de fazer um bolinho antes de render {pos} na {console} às {shift_time}')
-
+    global last_message
+    new_message = Message(op_name, shift_time, console)
+    if new_message != last_message[console][pos]:
+        bot.send_message(chat_id,
+                f'''
+                {op_name} dá tempo de fazer um bolinho antes de render {pos} na {console} às {shift_time}
+                '''
+                )
+        print(f'{op_name} dá tempo de fazer um bolinho antes de render {pos} na {console} às {shift_time}')
+        last_message[console][pos] = new_message
+    else: 
+        return
+    
+    
 def is_updated(sheet, position, console):
     range_name = 'BOT!'+ position
     result = sheet.values().get(spreadsheetId=SPREADSHEET_ID,
