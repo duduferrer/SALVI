@@ -116,9 +116,13 @@ def sync_schedule():
 def send_detach_msg(upcoming_list, sheet):
     op_name = ''.join(upcoming_list[0][0])
     value_input_option = "USER_ENTERED"
-    body_text = {
+    OK_body_text = {
             'values': [[f'Mensagem enviada para {op_name}']]
         }
+    FAIL_body_text = {
+            'values': [[f'Mensagem para {op_name} FALHOU']]
+        }
+    chat_id = None
     if db_time_search(op_name):
         chat_id = db_chat_id_search(op_name)
     if chat_id:
@@ -127,11 +131,11 @@ def send_detach_msg(upcoming_list, sheet):
                 {op_name} tão te chamando lá dentro. Acho que querem te dar um bolete.
                 '''
                 )
-        sheet.values().update(spreadsheetId=SPREADSHEET_ID, range='BOT!C1', valueInputOption=value_input_option, body=body_text).execute()
-        global last_update
-        last_update.update({'detach' : datetime.now(timezone.utc)})
-        return True
-    return False
+        sheet.values().update(spreadsheetId=SPREADSHEET_ID, range='BOT!C1', valueInputOption=value_input_option, body=OK_body_text).execute()
+    else:
+        sheet.values().update(spreadsheetId=SPREADSHEET_ID, range='BOT!C1', valueInputOption=value_input_option, body=FAIL_body_text).execute()
+    global last_update
+    last_update.update({'detach' : datetime.now(timezone.utc)})
 
 def detach_sector(sheet):
     if is_updated(sheet, "P6", "detach"):
