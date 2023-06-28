@@ -11,8 +11,10 @@ from dotenv import load_dotenv
 #configs
 load_dotenv()
 logging.basicConfig(filename='main.log', encoding='utf-8', level=logging.INFO)
+
 API_TELEGRAM_TOKEN = os.getenv('API_TELEGRAM_TOKEN')
 URL_ESCALA = os.getenv('URL_ESCALA')
+
 bot = telebot.TeleBot(API_TELEGRAM_TOKEN)
 USER = User()
 os.environ["TZ"] = "America/Sao_Paulo"
@@ -242,8 +244,8 @@ def user_already_exists(message):
         logging.info("User not found on DB")
         return False
 
+
 t = threading.Thread(target=sync_schedule)
 t.start()
-
 
 bot.infinity_polling(timeout=10, long_polling_timeout = 5)
